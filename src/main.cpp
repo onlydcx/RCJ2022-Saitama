@@ -378,29 +378,29 @@ void loop() {
 
       if(isAvoidLines) {
          int vectorX, vectorY;
-         int s = 100;
+         int vec = 100;
          int avoidLineCnt = 0;
          String isOnLines = "";
          if ((GetLine(0, 0) > 45) || (GetLine(0, 1) > 100)) {
             vectorX += 0;
-            vectorY += -s;
+            vectorY += -vec;
             avoidLineCnt++;
             isOnLines += "Front";
          }
          if ((GetLine(3, 0) > 120) || (GetLine(3, 1) > 40) || (GetLine(3, 2) > 80)) {
             vectorX += 0;
-            vectorY += s;
+            vectorY += vec;
             avoidLineCnt++;
             isOnLines += " Back ";
          }
          if ((GetLine(2, 0) > 40) || (GetLine(2, 1) > 110) || (GetLine(2, 2) > 170)) {
-            vectorX += -s;
+            vectorX += -vec;
             vectorY += 0;
             avoidLineCnt++;
             isOnLines += " Right ";
          }
          if ((GetLine(1, 0) > 120) || (GetLine(1, 1) > 50) || (GetLine(1, 2) > 60)) {
-            vectorX += s;
+            vectorX += vec;
             vectorY += 0;
             avoidLineCnt++;
             isOnLines += " Left ";
@@ -440,7 +440,7 @@ void loop() {
       else if (dirIR >= 325) {
          dirPlus = (360 - dirIR);
       } 
-      else{
+      else {
          dirPlus = 50;
       }
 

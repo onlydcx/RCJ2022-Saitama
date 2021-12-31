@@ -221,7 +221,7 @@ void move(int angle) {
 
 int globalCamVal = 0;
 
-void motor(int angle) {
+void motor(int angle, bool smooth = true) {
 
    int GyroVal = 0;
    int camVal = getCam();
@@ -258,15 +258,17 @@ void motor(int angle) {
 
    for (int i = 0; i < 4; i++) {
       motor_power[i] = speed2 * motor_power[i] / max_power;
-      for (int j = 9; j > 0; j--) {
-         ave_motor_power[i][j] = ave_motor_power[i][j - 1];
+      if(smooth) {
+         for (int j = 9; j > 0; j--) {
+            ave_motor_power[i][j] = ave_motor_power[i][j - 1];
+         }
+         ave_motor_power[i][0] = motor_power[i];
+         ave_mpPlus = 0;
+         for (int k = 0; k < 10; k++) {
+            ave_mpPlus = ave_mpPlus + ave_motor_power[i][k];
+         }
+         motor_power[i] = ave_mpPlus / 10;
       }
-      ave_motor_power[i][0] = motor_power[i];
-      ave_mpPlus = 0;
-      for (int k = 0; k < 10; k++) {
-         ave_mpPlus = ave_mpPlus + ave_motor_power[i][k];
-      }
-      motor_power[i] = ave_mpPlus / 10;
    }
 
    if (globalCamVal >= -35 && globalCamVal <= 35) {
@@ -414,7 +416,7 @@ void loop() {
                Serial.println("白線上にはいません");
             }
             motorStop();
-            motor(finalAngle);
+            motor(finalAngle, false);
             delay(dltime);
          }
       }

@@ -1,7 +1,6 @@
 #include <Wire.h>
 #include <MPU6050_6Axis_MotionApps20.h>
 #include "CytronMotorDriver.h"
-#include <string>
 
 #define __IS_ON_FRONT_LINE (isOnLine[0][0] || isOnLine[0][1] || isOnLine[0][2])
 #define __IS_ON_RIGHT_LINE (isOnLine[1][0] || isOnLine[1][1] || isOnLine[1][2])

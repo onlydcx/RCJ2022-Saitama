@@ -34,10 +34,10 @@ int Gyro_X, Gyro_Y, Gyro_Z, Accel_Z;
 int ave_motor_power[4][10] = {0};
 int ave_mpPlus = 0;
 
-void Gyro_init(void);
-void motor(int angle);
+void Gyro_init();
+void motor();
 void motorStop();
-void line_motor(int angle);
+void line_motor();
 void debug();
 void tone_err();
 void mpu_err();
@@ -46,9 +46,9 @@ void tone_isOnLine();
 void move();
 void kick();
 
-int GyroGet(void);
-int getVah(int f);
-int IRval(int i);
+int GyroGet();
+int getVah();
+int IRval();
 int getIR();
 int getCam();
 

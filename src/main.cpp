@@ -384,54 +384,54 @@ void loop() {
             vectorX += 0;
             vectorY += -s;
             avoidLineCnt++;
-            motorStop();
-            w = 255;
-            tone(SPEAKER, 2000,dltime);
-            Serial.println("Front");
-            motor1.setSpeed(-w);
-            motor2.setSpeed(w);
-            motor3.setSpeed(-w);
-            motor4.setSpeed(w);
-            delay(dltime);
+            // motorStop();
+            // w = 255;
+            // tone(SPEAKER, 2000,dltime);
+            // Serial.println("Front");
+            // motor1.setSpeed(-w);
+            // motor2.setSpeed(w);
+            // motor3.setSpeed(-w);
+            // motor4.setSpeed(w);
+            // delay(dltime);
          }
          if ((GetLine(3, 0) > 120) || (GetLine(3, 1) > 40) || (GetLine(3, 2) > 80)) {
             vectorX += 0;
             vectorY += s;
             avoidLineCnt++;
-            motorStop();
-            tone(SPEAKER, 2000);
-            Serial.println("Back");
-            motor1.setSpeed(w);
-            motor2.setSpeed(-w);
-            motor3.setSpeed(w);
-            motor4.setSpeed(-w);
-            delay(dltime);
+            // motorStop();
+            // tone(SPEAKER, 2000);
+            // Serial.println("Back");
+            // motor1.setSpeed(w);
+            // motor2.setSpeed(-w);
+            // motor3.setSpeed(w);
+            // motor4.setSpeed(-w);
+            // delay(dltime);
          }
          if ((GetLine(2, 0) > 40) || (GetLine(2, 1) > 110) || (GetLine(2, 2) > 170)) {
             vectorX += -s;
             vectorY += 0;
             avoidLineCnt++;
-            Serial.println("Right");
-            tone(SPEAKER, 2000);
-            motorStop();
-            motor1.setSpeed(-w);
-            motor2.setSpeed(-w);
-            motor3.setSpeed(w);
-            motor4.setSpeed(w);
-            delay(dltime);
+            // Serial.println("Right");
+            // tone(SPEAKER, 2000);
+            // motorStop();
+            // motor1.setSpeed(-w);
+            // motor2.setSpeed(-w);
+            // motor3.setSpeed(w);
+            // motor4.setSpeed(w);
+            // delay(dltime);
          }
          if ((GetLine(1, 0) > 120) || (GetLine(1, 1) > 50) || (GetLine(1, 2) > 60)) {
             vectorX += s;
             vectorY += 0;
             avoidLineCnt++;
-            Serial.println("Left");
-            tone(SPEAKER, 2000);
-            motorStop();
-            motor1.setSpeed(w);
-            motor2.setSpeed(w);
-            motor3.setSpeed(-w);
-            motor4.setSpeed(-w);
-            delay(dltime);
+            // Serial.println("Left");
+            // tone(SPEAKER, 2000);
+            // motorStop();
+            // motor1.setSpeed(w);
+            // motor2.setSpeed(w);
+            // motor3.setSpeed(-w);
+            // motor4.setSpeed(-w);
+            // delay(dltime);
          }
          if(avoidLineCnt != 0) {
             int finalAngle = int(sqrt((vectorX + vectorY) / avoidLineCnt));

@@ -45,6 +45,7 @@ void tone_setup();
 void tone_isOnLine();
 void move();
 void kick();
+void moveTo();
 
 int GyroGet();
 int getVah();
@@ -54,6 +55,8 @@ int getCam();
 
 int prevIR, dirPlus, cnt;
 int dirIR = 0;
+int motor;
+int beforemotor;
 
 void tone_setup() {
    int t = 130;
@@ -294,6 +297,26 @@ void motor(int angle, bool smooth = true) {
    }
 }
 
+void moveTo(int from, int to) {
+   int time = 1;
+   int diff = from - to;
+   if (diff > 0) {
+      for(from; from > to; from--) {
+         motor(from);
+         delay(time);
+      }
+   }
+   else if (diff < 0) {
+      for(from; from < to; from++) {
+         motor(from);
+         delay(time);
+      }
+   }
+   else {
+      motor(from);
+   }
+}
+
 void motorStop() {
    motor1.setSpeed(0);
    motor2.setSpeed(0);
@@ -316,7 +339,7 @@ void debug() {
 
 int GetLine(int head, int num) {
    int analogPins[4][3] = {
-      {11, 12, 13},
+      {11, 12, 12},
       {3, 6, 7},
       {8, 9, 10},
       {0, 1, 2}
@@ -416,7 +439,7 @@ void loop() {
                Serial.println("白線上にはいません");
             }
             motorStop();
-            motor(finalAngle, false);
+            motor = finalAngle;
             delay(dltime);
          }
       }
@@ -449,29 +472,31 @@ void loop() {
       dirPlus = dirPlus + 10;
 
       if (getVah(0x05) <= 50 && getVah(0x07) <= 10) {
-         motor(dirIR);
+         motor = dirIR;
       }
       else if (getVah(0x05) >= 100 && getVah(0x07) >= 15) {
          if (dirIR <= 5 || dirIR >= 355) {
-            motor(0);
+            motor = 0;
          } 
          else {
             if (dirIR <= 180) {
-               motor(dirIR + dirPlus * 2);
+               motor = dirIR + dirPlus * 2;
             } 
             else {
-               motor(dirIR - dirPlus * 2);
+               motor = dirIR - dirPlus * 2;
             }
          }
       } 
       else {
          if (dirIR <= 180) {
-            motor(dirIR + dirPlus);
+            motor = dirIR + dirPlus;
          } 
          else {
-            motor(dirIR - dirPlus);
+            motor = dirIR - dirPlus;
          }
       }
+      moveTo(motor, beforemotor);
+      beforemotor = motor;
    }
    else {
       motorStop();

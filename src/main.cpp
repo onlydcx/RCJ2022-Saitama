@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <MPU6050_6Axis_MotionApps20.h>
 #include "CytronMotorDriver.h"
+#include <string>
 
 #define __IS_ON_FRONT_LINE (isOnLine[0][0] || isOnLine[0][1] || isOnLine[0][2])
 #define __IS_ON_RIGHT_LINE (isOnLine[1][0] || isOnLine[1][1] || isOnLine[1][2])
@@ -34,10 +35,10 @@ int Gyro_X, Gyro_Y, Gyro_Z, Accel_Z;
 int ave_motor_power[4][10] = {0};
 int ave_mpPlus = 0;
 
-void Gyro_init();
-void motor();
+void Gyro_init(void);
+void motor(int angle);
 void motorStop();
-void line_motor();
+void line_motor(int angle);
 void debug();
 void tone_err();
 void mpu_err();
@@ -45,18 +46,15 @@ void tone_setup();
 void tone_isOnLine();
 void move();
 void kick();
-void moveTo();
 
-int GyroGet();
-int getVah();
-int IRval();
+int GyroGet(void);
+int getVah(int f);
+int IRval(int i);
 int getIR();
 int getCam();
 
 int prevIR, dirPlus, cnt;
 int dirIR = 0;
-int motor;
-int beforemotor;
 
 void tone_setup() {
    int t = 130;
@@ -224,7 +222,7 @@ void move(int angle) {
 
 int globalCamVal = 0;
 
-void motor(int angle, bool smooth = true) {
+void motor(int angle) {
 
    int GyroVal = 0;
    int camVal = getCam();
@@ -261,17 +259,15 @@ void motor(int angle, bool smooth = true) {
 
    for (int i = 0; i < 4; i++) {
       motor_power[i] = speed2 * motor_power[i] / max_power;
-      if(smooth) {
-         for (int j = 9; j > 0; j--) {
-            ave_motor_power[i][j] = ave_motor_power[i][j - 1];
-         }
-         ave_motor_power[i][0] = motor_power[i];
-         ave_mpPlus = 0;
-         for (int k = 0; k < 10; k++) {
-            ave_mpPlus = ave_mpPlus + ave_motor_power[i][k];
-         }
-         motor_power[i] = ave_mpPlus / 10;
+      for (int j = 9; j > 0; j--) {
+         ave_motor_power[i][j] = ave_motor_power[i][j - 1];
       }
+      ave_motor_power[i][0] = motor_power[i];
+      ave_mpPlus = 0;
+      for (int k = 0; k < 10; k++) {
+         ave_mpPlus = ave_mpPlus + ave_motor_power[i][k];
+      }
+      motor_power[i] = ave_mpPlus / 10;
    }
 
    if (globalCamVal >= -35 && globalCamVal <= 35) {
@@ -297,26 +293,6 @@ void motor(int angle, bool smooth = true) {
    }
 }
 
-void moveTo(int from, int to) {
-   int time = 1;
-   int diff = from - to;
-   if (diff > 0) {
-      for(from; from > to; from--) {
-         motor(from);
-         delay(time);
-      }
-   }
-   else if (diff < 0) {
-      for(from; from < to; from++) {
-         motor(from);
-         delay(time);
-      }
-   }
-   else {
-      motor(from);
-   }
-}
-
 void motorStop() {
    motor1.setSpeed(0);
    motor2.setSpeed(0);
@@ -339,7 +315,7 @@ void debug() {
 
 int GetLine(int head, int num) {
    int analogPins[4][3] = {
-      {11, 12, 12},
+      {11, 12, 13},
       {3, 6, 7},
       {8, 9, 10},
       {0, 1, 2}
@@ -403,29 +379,29 @@ void loop() {
 
       if(isAvoidLines) {
          int vectorX, vectorY;
-         int vec = 100;
+         int s = 100;
          int avoidLineCnt = 0;
          String isOnLines = "";
          if ((GetLine(0, 0) > 45) || (GetLine(0, 1) > 100)) {
             vectorX += 0;
-            vectorY += -vec;
+            vectorY += -s;
             avoidLineCnt++;
             isOnLines += "Front";
          }
          if ((GetLine(3, 0) > 120) || (GetLine(3, 1) > 40) || (GetLine(3, 2) > 80)) {
             vectorX += 0;
-            vectorY += vec;
+            vectorY += s;
             avoidLineCnt++;
             isOnLines += " Back ";
          }
          if ((GetLine(2, 0) > 40) || (GetLine(2, 1) > 110) || (GetLine(2, 2) > 170)) {
-            vectorX += -vec;
+            vectorX += -s;
             vectorY += 0;
             avoidLineCnt++;
             isOnLines += " Right ";
          }
          if ((GetLine(1, 0) > 120) || (GetLine(1, 1) > 50) || (GetLine(1, 2) > 60)) {
-            vectorX += vec;
+            vectorX += s;
             vectorY += 0;
             avoidLineCnt++;
             isOnLines += " Left ";
@@ -439,7 +415,7 @@ void loop() {
                Serial.println("白線上にはいません");
             }
             motorStop();
-            motor = finalAngle;
+            motor(finalAngle);
             delay(dltime);
          }
       }
@@ -465,38 +441,36 @@ void loop() {
       else if (dirIR >= 325) {
          dirPlus = (360 - dirIR);
       } 
-      else {
+      else{
          dirPlus = 50;
       }
 
       dirPlus = dirPlus + 10;
 
       if (getVah(0x05) <= 50 && getVah(0x07) <= 10) {
-         motor = dirIR;
+         motor(dirIR);
       }
       else if (getVah(0x05) >= 100 && getVah(0x07) >= 15) {
          if (dirIR <= 5 || dirIR >= 355) {
-            motor = 0;
+            motor(0);
          } 
          else {
             if (dirIR <= 180) {
-               motor = dirIR + dirPlus * 2;
+               motor(dirIR + dirPlus * 2);
             } 
             else {
-               motor = dirIR - dirPlus * 2;
+               motor(dirIR - dirPlus * 2);
             }
          }
       } 
       else {
          if (dirIR <= 180) {
-            motor = dirIR + dirPlus;
+            motor(dirIR + dirPlus);
          } 
          else {
-            motor = dirIR - dirPlus;
+            motor(dirIR - dirPlus);
          }
       }
-      moveTo(motor, beforemotor);
-      beforemotor = motor;
    }
    else {
       motorStop();

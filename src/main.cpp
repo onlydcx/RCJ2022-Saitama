@@ -171,23 +171,23 @@ int IRval(int i) {
    int b = getVah(0x05);
    int c = getVah(0x06);
    int d = getVah(0x07);
-   int kekkahoko;
-   int kekkatuyosa;
+   int re_angle;
+   int re_strength;
 
    if (d < 10) {
-      kekkahoko = a;
-      kekkatuyosa = b;
+      re_angle = a;
+      re_strength = b;
    }
    else {
-      kekkahoko = c;
-      kekkatuyosa = d;
+      re_angle = c;
+      re_strength = d;
    }
 
-   if(i == 1) {
-      return kekkahoko*5;
+   if(i != 1) {
+      return re_strength;
    }
    else {
-      return kekkatuyosa;
+      return re_angle*5;
    }
 }
 

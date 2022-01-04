@@ -7,7 +7,7 @@
 #define __IS_ON_BACK_LINE (isOnLine[2][0] || isOnLine[2][1] || isOnLine[2][2])
 #define __IS_ON_LEFT_LINE (isOnLine[3][0] || isOnLine[3][1] || isOnLine[3][2])
 
-#define SPEED 170
+#define SPEED 150
 
 #define SPEAKER 33
 #define OpenMV Serial7
@@ -45,6 +45,7 @@ void tone_setup();
 void tone_isOnLine();
 void move();
 void kick();
+void lineMotor();
 
 int GyroGet(void);
 int getVah(int f);
@@ -292,6 +293,51 @@ void motor(int angle) {
    }
 }
 
+void lineMotor(int angle) {
+   int GyroVal = 0;
+   int camVal = getCam();
+
+   if (!(camVal > 0 && camVal <= 70)) {
+      camVal = 0;
+   }
+   if (camVal != 0) {
+      globalCamVal = camVal - 35;
+   }
+   else {
+      GyroVal = GyroGet();
+   }
+
+   while (GyroVal > 359) {
+      GyroVal -= 359;
+   }
+
+   double motor_power[4];
+   double max_power;
+
+   motor_power[0] = cos((45 - angle) / 180.0 * PI);
+   motor_power[1] = cos((135 - angle) / 180.0 * PI);
+   motor_power[2] = cos((-45 - angle) / 180.0 * PI);
+   motor_power[3] = cos((-135 - angle) / 180.0 * PI);
+
+   for (int i = 0; i < 4; i++) {
+      if (abs(motor_power[i]) > max_power) {
+         max_power = abs(motor_power[i]);
+      }
+   }
+
+   speed2 = SPEED;
+
+   for (int i = 0; i < 4; i++) {
+      motor_power[i] = speed2 * motor_power[i] / max_power;
+   }
+
+   motor1.setSpeed(motor_power[0]);
+   motor2.setSpeed(motor_power[1]);
+   motor3.setSpeed(motor_power[2]);
+   motor4.setSpeed(motor_power[3]);
+
+}
+
 void motorStop() {
    motor1.setSpeed(0);
    motor2.setSpeed(0);
@@ -336,7 +382,7 @@ int getCam() {
          re = 0;
       }
    }
-   return re;
+   return 0;
 }
 
 void setup() {
@@ -359,6 +405,8 @@ void loop() {
    bool canRun = 0;
    canRun = digitalRead(32);
 
+   int avoidLineCnt = 0;
+
    char front[64];
    sprintf(front, "(0.0) ->  %d (0.1) -> %d", GetLine(0, 0), GetLine(0, 1));
    char left[64];
@@ -368,106 +416,106 @@ void loop() {
    char back[64];
    sprintf(back, "(2.0) ->  %d (2.1) ->  %d (2.2) ->  %d", GetLine(3, 0), GetLine(3, 1), GetLine(3, 2));
 
-   Serial.println(front);
-
+   Serial.println(back);
    if (canRun) {
-      int w = SPEED;
-      int dltime = 5;
 
-      bool isAvoidLines = false;
+      bool isAvoidLines = true;
 
       if(isAvoidLines) {
-         int vectorX, vectorY;
-         int vec = 100;
-         int avoidLineCnt = 0;
+         float vectorX = 0.0, vectorY = 0.0;
+         float vec = 1.0;
          String isOnLines = "";
-         if ((GetLine(0, 0) > 45) || (GetLine(0, 1) > 100)) {
-            vectorX += 0;
-            vectorY += -vec;
+         if ((GetLine(0, 0) > 1023) || (GetLine(0, 1) > 110)) {
+            vectorX += -vec;
+            vectorY += 0.0;
             avoidLineCnt++;
             isOnLines += "Front";
          }
-         if ((GetLine(3, 0) > 120) || (GetLine(3, 1) > 40) || (GetLine(3, 2) > 80)) {
-            vectorX += 0;
-            vectorY += vec;
+         if ((GetLine(3, 0) > 200) || (GetLine(3, 1) > 40) || (GetLine(3, 2) > 90)) {
+            vectorX += vec;
+            vectorY += 0.0;
             avoidLineCnt++;
             isOnLines += " Back ";
          }
-         if ((GetLine(2, 0) > 40) || (GetLine(2, 1) > 110) || (GetLine(2, 2) > 170)) {
-            vectorX += -vec;
-            vectorY += 0;
+         if ((GetLine(2, 0) > 50) || (GetLine(2, 1) > 70) || (GetLine(2, 2) > 200)) {
+            vectorX += 0.0;
+            vectorY += -vec;
             avoidLineCnt++;
             isOnLines += " Right ";
          }
-         if ((GetLine(1, 0) > 120) || (GetLine(1, 1) > 50) || (GetLine(1, 2) > 60)) {
-            vectorX += vec;
-            vectorY += 0;
+         if ((GetLine(1, 0) > 250) || (GetLine(1, 1) > 90) || (GetLine(1, 2) > 100)) {
+            vectorX += 0.0;
+            vectorY += vec;
             avoidLineCnt++;
             isOnLines += " Left ";
          }
          if(avoidLineCnt != 0) {
-            int finalAngle = int(sqrt((vectorX + vectorY) / avoidLineCnt));
-            if(isOnLines != "") {
-               Serial.println(isOnLines);
-            }
-            else {
-               Serial.println("白線上にはいません");
-            }
-            motorStop();
-            motor(finalAngle);
-            delay(dltime);
+            char XY[64];
+            sprintf(XY, "vectorX -> %f vectorY -> %f", vectorX, vectorY);
+            // Serial.println(XY);
+
+            float XB = vectorX, YB = vectorY;
+            // Serial.print("Direction = ");
+            double finalAngle = atan2(YB, XB) * 180.0 / PI;
+
+            Serial.println(isOnLines);
+            lineMotor(int(finalAngle));
+            delay(20);
          }
       }
 
-      dirIR = IRval(1);
-      if (abs(prevIR - dirIR) > 110) {
-         cnt++;
-         if (cnt == 5) {
+      if(avoidLineCnt == 0) {
+         Serial.println("ボールを終えます");
+         dirIR = IRval(1);
+         if (abs(prevIR - dirIR) > 110) {
+            cnt++;
+            if (cnt == 5) {
+               cnt = 0;
+               prevIR = dirIR;
+            }
+            else {
+               dirIR = prevIR;
+            }
+         }
+         else {
             cnt = 0;
             prevIR = dirIR;
          }
-         else {
-            dirIR = prevIR;
+         if (dirIR <= 35) {
+            dirPlus = dirIR ;
          }
-      }
-      else {
-         cnt = 0;
-         prevIR = dirIR;
-      }
-      if (dirIR <= 35) {
-         dirPlus = dirIR ;
-      }
-      else if (dirIR >= 325) {
-         dirPlus = (360 - dirIR);
-      } 
-      else {
-         dirPlus = 50;
-      }
+         else if (dirIR >= 325) {
+            dirPlus = (360 - dirIR);
+         } 
+         else {
+            dirPlus = 50;
+         }
 
-      dirPlus = dirPlus + 10;
+         dirPlus = dirPlus + 10;
 
-      if (getVah(0x05) <= 50 && getVah(0x07) <= 10) {
-         motor(dirIR);
-      }
-      else if (getVah(0x05) >= 100 && getVah(0x07) >= 15) {
-         if (dirIR <= 5 || dirIR >= 355) {
-            motor(0);
+         if (getVah(0x05) <= 50 && getVah(0x07) <= 10) {
+            motor(dirIR);
+         }
+         else if (getVah(0x05) >= 100 && getVah(0x07) >= 15) {
+            if (dirIR <= 5 || dirIR >= 355) {
+               motor(0);
+            } 
+            else {
+               if (dirIR <= 180) {
+                  motor(dirIR + dirPlus * 2);
+               } 
+               else {
+                  motor(dirIR - dirPlus * 2);
+               }
+            }
          } 
          else {
             if (dirIR <= 180) {
-               motor(dirIR + dirPlus * 2);
+               motor(dirIR + dirPlus);
             } 
             else {
-               motor(dirIR - dirPlus * 2);
+               motor(dirIR - dirPlus);
             }
-         }
-      } 
-      else {
-         if (dirIR <= 180) {
-            motor(dirIR + dirPlus);
-         } 
-         else {
-            motor(dirIR - dirPlus);
          }
       }
    }

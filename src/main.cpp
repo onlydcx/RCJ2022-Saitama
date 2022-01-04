@@ -8,6 +8,7 @@
 #define __IS_ON_LEFT_LINE (isOnLine[3][0] || isOnLine[3][1] || isOnLine[3][2])
 
 #define SPEED 150
+#define MAX 255
 
 #define SPEAKER 33
 #define OpenMV Serial7
@@ -272,17 +273,29 @@ void motor(int angle) {
 
    if (globalCamVal >= -35 && globalCamVal <= 35) {
       int rollPower = SPEED;
-      if ((GyroVal >= 36) && (GyroVal <= 180)) {
+      if ((GyroVal >= 36) && (GyroVal < 90)) {
          motor1.setSpeed(rollPower);
          motor2.setSpeed(rollPower);
          motor3.setSpeed(rollPower);
          motor4.setSpeed(rollPower);
       }
-      else if ((GyroVal <= 323) && (GyroVal > 180)) {
+      else if ((GyroVal >= 90) && (GyroVal <= 180)) {
+         motor1.setSpeed(MAX);
+         motor2.setSpeed(MAX);
+         motor3.setSpeed(MAX);
+         motor4.setSpeed(MAX);
+      }
+      else if ((GyroVal <= 323) && (GyroVal > 270)) {
          motor1.setSpeed(-rollPower);
          motor2.setSpeed(-rollPower);
          motor3.setSpeed(-rollPower);
          motor4.setSpeed(-rollPower);
+      }
+      else if ((GyroVal <= 270) && (GyroVal > 180)) {
+         motor1.setSpeed(-MAX);
+         motor2.setSpeed(-MAX);
+         motor3.setSpeed(-MAX);
+         motor4.setSpeed(-MAX);
       }
       else {
          motor1.setSpeed(motor_power[0] - globalCamVal);
@@ -382,7 +395,7 @@ int getCam() {
          re = 0;
       }
    }
-   return 0;
+   return re;
 }
 
 void setup() {
@@ -417,6 +430,7 @@ void loop() {
    sprintf(back, "(2.0) ->  %d (2.1) ->  %d (2.2) ->  %d", GetLine(3, 0), GetLine(3, 1), GetLine(3, 2));
 
    Serial.println(back);
+
    if (canRun) {
 
       bool isAvoidLines = true;
@@ -431,11 +445,11 @@ void loop() {
             avoidLineCnt++;
             isOnLines += "Front";
          }
-         if ((GetLine(3, 0) > 200) || (GetLine(3, 1) > 40) || (GetLine(3, 2) > 90)) {
-            vectorX += vec;
-            vectorY += 0.0;
+         if ((GetLine(1, 0) > 250) || (GetLine(1, 1) > 90) || (GetLine(1, 2) > 100)) {
+            vectorX += 0.0;
+            vectorY += vec;
             avoidLineCnt++;
-            isOnLines += " Back ";
+            isOnLines += " Left ";
          }
          if ((GetLine(2, 0) > 50) || (GetLine(2, 1) > 70) || (GetLine(2, 2) > 200)) {
             vectorX += 0.0;
@@ -443,29 +457,22 @@ void loop() {
             avoidLineCnt++;
             isOnLines += " Right ";
          }
-         if ((GetLine(1, 0) > 250) || (GetLine(1, 1) > 90) || (GetLine(1, 2) > 100)) {
-            vectorX += 0.0;
-            vectorY += vec;
+         if ((GetLine(3, 0) > 200) || (GetLine(3, 1) > 40) || (GetLine(3, 2) > 90)) {
+            vectorX += vec;
+            vectorY += 0.0;
             avoidLineCnt++;
-            isOnLines += " Left ";
+            isOnLines += " Back ";
          }
          if(avoidLineCnt != 0) {
             char XY[64];
             sprintf(XY, "vectorX -> %f vectorY -> %f", vectorX, vectorY);
-            // Serial.println(XY);
-
-            float XB = vectorX, YB = vectorY;
-            // Serial.print("Direction = ");
-            double finalAngle = atan2(YB, XB) * 180.0 / PI;
-
-            Serial.println(isOnLines);
+            double finalAngle = atan2(vectorX, vectorY) * 180.0 / PI;
             lineMotor(int(finalAngle));
             delay(20);
          }
       }
 
       if(avoidLineCnt == 0) {
-         Serial.println("ボールを終えます");
          dirIR = IRval(1);
          if (abs(prevIR - dirIR) > 110) {
             cnt++;

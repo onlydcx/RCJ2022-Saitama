@@ -329,7 +329,7 @@ void motorStop() {
 
 void kick() {
    digitalWrite(12,HIGH);
-   delay(75);
+   delay(60);
    digitalWrite(12,LOW);
    delay(1);
 }

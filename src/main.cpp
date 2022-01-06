@@ -44,7 +44,6 @@ void tone_err();
 void mpu_err();
 void tone_setup();
 void tone_isOnLine();
-void move();
 void kick();
 void lineMotor();
 
@@ -191,36 +190,6 @@ int IRval(int i) {
    }
 }
 
-void move(int angle) {
-   int w = SPEED;
-   switch(angle) {
-      case 0:
-         motor1.setSpeed(-w);
-         motor2.setSpeed(w);
-         motor3.setSpeed(-w);
-         motor4.setSpeed(w);
-         break;
-      case 90:
-         motor1.setSpeed(-w);
-         motor2.setSpeed(-w);
-         motor3.setSpeed(w);
-         motor4.setSpeed(w);
-         break;
-      case 180:
-         motor1.setSpeed(w);
-         motor2.setSpeed(-w);
-         motor3.setSpeed(w);
-         motor4.setSpeed(-w);
-         break;
-      case 270:
-         motor1.setSpeed(w);
-         motor2.setSpeed(w);
-         motor3.setSpeed(-w);
-         motor4.setSpeed(-w);
-         break;
-   }
-}
-
 int globalCamVal = 0;
 
 void motor(int angle) {
@@ -272,7 +241,7 @@ void motor(int angle) {
    }
 
    if (globalCamVal >= -35 && globalCamVal <= 35) {
-      int rollPower = SPEED;
+      int rollPower = SPEED / 2;
       if ((GyroVal >= 36) && (GyroVal < 90)) {
          motor1.setSpeed(rollPower);
          motor2.setSpeed(rollPower);

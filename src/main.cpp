@@ -200,6 +200,7 @@ void motor(int angle) {
    if (!(camVal > 0 && camVal <= 70)) {
       camVal = 0;
    }
+   
    if (camVal != 0) {
       globalCamVal = camVal - 35;
    }
@@ -382,7 +383,7 @@ void setup() {
 
 void loop() {
 
-   // debug();
+   debug();
 
    bool canRun = 0;
    canRun = digitalRead(32);
@@ -398,11 +399,11 @@ void loop() {
    char back[64];
    sprintf(back, "(2.0) ->  %d (2.1) ->  %d (2.2) ->  %d", GetLine(3, 0), GetLine(3, 1), GetLine(3, 2));
 
-   Serial.println(back);
+   // Serial.println(back);
 
    if (canRun) {
 
-      bool isAvoidLines = true;
+      bool isAvoidLines = false;
 
       if(isAvoidLines) {
          float vectorX = 0.0, vectorY = 0.0;

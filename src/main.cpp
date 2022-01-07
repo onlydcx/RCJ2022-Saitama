@@ -7,7 +7,7 @@
 #define __IS_ON_BACK_LINE (isOnLine[2][0] || isOnLine[2][1] || isOnLine[2][2])
 #define __IS_ON_LEFT_LINE (isOnLine[3][0] || isOnLine[3][1] || isOnLine[3][2])
 
-#define SPEED 150
+#define SPEED 215
 #define MAX 255
 
 #define SPEAKER 33
@@ -200,7 +200,7 @@ void motor(int angle) {
    if (!(camVal > 0 && camVal <= 70)) {
       camVal = 0;
    }
-   
+
    if (camVal != 0) {
       globalCamVal = camVal - 35;
    }
@@ -241,7 +241,7 @@ void motor(int angle) {
       motor_power[i] = ave_mpPlus / 10;
    }
 
-   if (globalCamVal >= -35 && globalCamVal <= 35) {
+   if (globalCamVal >= -34 && globalCamVal <= 35) {
       int rollPower = SPEED / 2;
       if ((GyroVal >= 36) && (GyroVal < 90)) {
          motor1.setSpeed(rollPower);
@@ -383,7 +383,7 @@ void setup() {
 
 void loop() {
 
-   debug();
+   // debug();
 
    bool canRun = 0;
    canRun = digitalRead(32);
@@ -399,7 +399,7 @@ void loop() {
    char back[64];
    sprintf(back, "(2.0) ->  %d (2.1) ->  %d (2.2) ->  %d", GetLine(3, 0), GetLine(3, 1), GetLine(3, 2));
 
-   // Serial.println(back);
+   // Serial.println(front);
 
    if (canRun) {
 
@@ -409,13 +409,13 @@ void loop() {
          float vectorX = 0.0, vectorY = 0.0;
          float vec = 1.0;
          String isOnLines = "";
-         if ((GetLine(0, 0) > 1023) || (GetLine(0, 1) > 110)) {
+         if ((GetLine(0, 0) > 1023) || (GetLine(0, 1) > 125)) {
             vectorX += -vec;
             vectorY += 0.0;
             avoidLineCnt++;
             isOnLines += "Front";
          }
-         if ((GetLine(1, 0) > 250) || (GetLine(1, 1) > 90) || (GetLine(1, 2) > 100)) {
+         if ((GetLine(1, 0) > 200) || (GetLine(1, 1) > 90) || (GetLine(1, 2) > 100)) {
             vectorX += 0.0;
             vectorY += vec;
             avoidLineCnt++;
@@ -434,10 +434,18 @@ void loop() {
             isOnLines += " Back ";
          }
          if(avoidLineCnt != 0) {
+            // char XY[64];
+            // sprintf(XY, "vectorX -> %f vectorY -> %f", vectorX, vectorY);
+            // double finalAngle = atan2(vectorX, vectorY) * 180.0 / PI;
+            // Serial.println(finalAngle);
+            // motorStop();
+            // lineMotor(int(finalAngle));
+            // delay(20);
             char XY[64];
             sprintf(XY, "vectorX -> %f vectorY -> %f", vectorX, vectorY);
             double finalAngle = atan2(vectorX, vectorY) * 180.0 / PI;
             lineMotor(int(finalAngle));
+            Serial.println(finalAngle);
             delay(20);
          }
       }

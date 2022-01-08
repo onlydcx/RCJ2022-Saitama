@@ -7,7 +7,7 @@
 #define __IS_ON_BACK_LINE (isOnLine[2][0] || isOnLine[2][1] || isOnLine[2][2])
 #define __IS_ON_LEFT_LINE (isOnLine[3][0] || isOnLine[3][1] || isOnLine[3][2])
 
-#define SPEED 150
+#define SPEED 220
 #define MAX 255
 
 #define SPEAKER 33
@@ -381,9 +381,11 @@ void setup() {
    pinMode(12, OUTPUT);
 }
 
-void loop() {
+int Charge = 0;
+int Houden = 0;
+bool kicked = false;
 
-   // debug();
+void loop() {
 
    bool canRun = 0;
    canRun = digitalRead(32);
@@ -403,7 +405,7 @@ void loop() {
 
    if (canRun) {
 
-      bool isAvoidLines = true;
+      bool isAvoidLines = false;
 
       if(isAvoidLines) {
          float vectorX = 0.0, vectorY = 0.0;
@@ -416,8 +418,7 @@ void loop() {
             isOnLines += "Front";
          }
          if ((GetLine(1, 0) > 200) || (GetLine(1, 1) > 90) || (GetLine(1, 2) > 100)) {
-
-                        vectorX += vec;
+            vectorX += vec;
             vectorY += 0.0;
             avoidLineCnt++;
             isOnLines += " Left ";
@@ -429,24 +430,16 @@ void loop() {
             isOnLines += " Right ";
          }
          if ((GetLine(3, 0) > 200) || (GetLine(3, 1) > 40) || (GetLine(3, 2) > 90)) {
-                        vectorX += 0.0;
+            vectorX += 0.0;
             vectorY += vec;
             avoidLineCnt++;
             isOnLines += " Back ";
          }
          if(avoidLineCnt != 0) {
-            // char XY[64];
-            // sprintf(XY, "vectorX -> %f vectorY -> %f", vectorX, vectorY);
-            // double finalAngle = atan2(vectorX, vectorY) * 180.0 / PI;
-            // Serial.println(finalAngle);
-            // motorStop();
-            // lineMotor(int(finalAngle));
-            // delay(20);
             char XY[64];
             sprintf(XY, "vectorX -> %f vectorY -> %f", vectorX, vectorY);
             double finalAngle = atan2(vectorX, vectorY) * 180.0 / PI;
-                        motorStop();
-
+            motorStop();
             lineMotor(int(finalAngle));
             // Serial.println(finalAngle);
             delay(20);
@@ -487,7 +480,7 @@ void loop() {
          else if (getVah(0x05) >= 100 && getVah(0x07) >= 15) {
             if (dirIR <= 5 || dirIR >= 355) {
                motor(0);
-            } 
+            }
             else {
                if (dirIR <= 180) {
                   motor(dirIR + dirPlus * 2);
@@ -510,4 +503,5 @@ void loop() {
    else {
       motorStop();
    }
+   delay(1);
 }
